@@ -12,6 +12,8 @@ include(kaldi-native-fbank)
 include(libsamplerate)                                                                                                  
 include(nlohmann_json)                                                                                                  
 include(websocketpp)                                                                                                  
+include(asio)
+add_definitions(-DASIO_STANDALONE)
 
 
 find_package(Git REQUIRED)
@@ -26,7 +28,9 @@ add_definitions(-DCOMMIT_ID="${GIT_COMMIT_ID}")
 
 # 查找 OpenCV 包
 #set(OpenCV_DIR ...)
+set(OpenCV_DIR "/usr/lib/x86_64-linux-gnu/cmake/opencv4")
 find_package(OpenCV REQUIRED)
+
 
 # 打印 OpenCV 版本信息
 message(STATUS "OpenCV library status:")
