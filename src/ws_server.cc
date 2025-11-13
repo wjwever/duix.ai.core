@@ -1,3 +1,4 @@
+#include "asr.h"
 #include "clog.h"
 #include "config.h"
 #include "fetch.h"
@@ -5,7 +6,6 @@
 #include "lm_client.h"
 #include "tts.h"
 #include "util.h"
-#include "asr.h"
 #include <edge_render.h>
 #include <future>
 #include <getopt.hpp>
@@ -32,6 +32,9 @@ struct WorkFLow {
   WorkFLow() {
     _lmClient = nullptr;
     _render = nullptr;
+    _asr = std::make_shared<Asr>(CONFIG::asrOnnx(), CONFIG::asrToken(),
+                                 CONFIG::vadOnnx());
+    _asr->_onAsr = std::bind(&WorkFLow::chat, this, std::placeholders::_1);
   }
   int init(std::function<void(std::vector<uint8_t> &data)> imgHdl,
            std::function<void(const std::string &msg)> msgHdl,
@@ -58,8 +61,6 @@ struct WorkFLow {
         _render->_ttsTasks.push(fut);
       }
     };
-    _asr = std::make_shared<Asr>("sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/model.onnx", "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/tokens.txt", "silero_vad.onnx");
-    _asr->_onAsr = std::bind(&WorkFLow::chat, this, std::placeholders::_1);
     return 0;
   }
   void chat(const std::string &query) {
@@ -164,38 +165,17 @@ void on_message(server *s, websocketpp::connection_hdl hdl,
 
 int main() {
   curl_global_init(CURL_GLOBAL_DEFAULT);
-  auto *config = config::get();
-  std::string conf = getarg("conf/conf.json", "-c", "--conf");
-  std::ifstream stream(conf);
-  if (stream.is_open()) {
-    auto root = json::parse(stream);
-    if (root.count("minimax")) {
-      config->groupId = root["minimax"].value("groupId", "");
-      config->apiKey = root["minimax"].value("apiKey", "");
-    }
-    if (root.count("lmUrl")) {
-      config->lmUrl = root["lmUrl"];
-    }
-    if (root.count("lmApiKey")) {
-      config->lmApiKey = root["lmApiKey"];
-    }
-    if (root.count("lmModel")) {
-      config->lmModel = root["lmModel"];
-    }
-    if (root.count("lmPrompt")) {
-      config->lmPrompt = root["lmPrompt"];
-    }
-  }
 
-  if (config->valid() == false) {
-    PLOGE << "config invalid:" << conf;
+  if (CONFIG::valid() == false) {
     return 0;
   }
 
+  // just for test
   std::string IP = getPublicIP();
   PLOGI << "PublicIP:" << IP;
   httplib::Server svr;
 
+  // start static file server
   std::string cmd = "mkdir -p video";
   std::system(cmd.c_str());
   svr.set_mount_point("/video", "video");
@@ -204,15 +184,12 @@ int main() {
       [&svr] { svr.listen("0.0.0.0", 8080); }); // fix later, http never exits
   PLOGI << "http server start at 8080";
 
+  // start websocket server
   server ws_server;
   ws_server.set_access_channels(websocketpp::log::alevel::none);
   ws_server.set_error_channels(websocketpp::log::elevel::info);
   ws_server.init_asio();
   ws_server.set_reuse_addr(true);
-
-  // ws_server.set_message_handler(bind(
-  //     &on_message, &ws_server, std::placeholders::_1,
-  //     std::placeholders::_2));
 
   ws_server.set_open_handler([&](connection_hdl hdl) {
     connectionManager.add(hdl);

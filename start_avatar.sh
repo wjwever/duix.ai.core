@@ -1,43 +1,16 @@
-sudo apt update
 echo "Installing relevant dependencies"
-sudo apt install build-essential cmake  wget curl  ffmpeg git libopencv-dev libcurl4-openssl-dev libboost-all-dev -y
-#git clone --recurse-submodules https://github.com/wjwever/duix.ai.core.git
-#cd duix.ai.core
-mkdir -p build; 
-cd build; 
-cmake ../; 
-make -j$(($(nproc) - 1));
+sudo apt install build-essential cmake wget curl ffmpeg git libopencv-dev libcurl4-openssl-dev -y
+mkdir -p build
+cd build
+cmake ../
+make -j$(($(nproc) - 1))
 cp ../conf . -r
 mkdir -p audio video
 
-echo "Download vad & asr model"
-if [ ! -f silero_vad.onnx ]; then
-    wget https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/silero_vad.onnx
-fi
-
-if [ ! -d sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17 ];then
-    wget https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17.tar.bz2
-    tar xvf sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17.tar.bz2
-    rm sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17.tar.bz2
-fi
- 
 echo "Download relevant Resource"
-if [ ! -d gj_dh_res ]; then
-	wget https://cdn.guiji.ai/duix/location/gj_dh_res.zip
-	unzip gj_dh_res.zip
-fi
-mkdir -p roles
-if [ ! -d roles/SiYao ];then
-	wget https://digital-public.obs.cn-east-3.myhuaweicloud.com/duix/digital/model/1719194450521/siyao_20240418.zip
-	unzip siyao_20240418.zip
-	mv siyao_20240418 roles/SiYao
+if [ ! -d resource.tar.gz ]; then
+  wget https://github.com/wjwever/duix.ai.core/releases/download/1.0/resource.tar.gz -O resource.tar.gz
+  tar zxvf resource.tar.gz
 fi
 
-if [ ! -d roles/DearSister ];then
-wget https://digital-public.obs.cn-east-3.myhuaweicloud.com/duix/digital/model/1719194007931/bendi1_0329.zip
-unzip bendi1_0329.zip
-mv bendi1_0329 roles/DearSister
-fi
-
-./bin/ws_server 
-
+./bin/ws_server
