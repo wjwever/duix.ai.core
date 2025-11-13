@@ -33,8 +33,7 @@ inline std::string apiKey =
 
 // lm
 inline std::string lmUrl = "https://api.moonshot.cn/v1";
-inline std::string lmApiKey =
-    "sk-fUZfC5aa70qpWkqK767rBQlW4xnGe2jtCqaTSH9Ozb2hMRYy";
+inline std::string lmApiKey = "";
 inline std::string lmModel = "moonshot-v1-8k";
 inline std::string lmPrompt = "你是一个智能助手,性格可爱,善于助人,"
                               "每次回复要求：口语化的回复,"
