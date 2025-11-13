@@ -19,19 +19,8 @@ using json = nlohmann::json;
 
 int main() {
   curl_global_init(CURL_GLOBAL_DEFAULT);
-  auto *config = config::get();
-  std::string conf = getarg("conf/conf.json", "-c", "--conf");
-  std::ifstream stream(conf);
-  if (stream.is_open()) {
-    auto root = json::parse(stream);
-    if (root.count("minimax")) {
-      config->groupId = root["minimax"].value("groupId", "");
-      config->apiKey = root["minimax"].value("apiKey", "");
-    }
-  }
 
-  if (config->valid() == false) {
-    PLOGE << "config invalid:" << conf;
+  if (CONFIG::valid() == false) {
     return 0;
   }
 

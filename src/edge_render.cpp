@@ -132,6 +132,13 @@ void EdgeRender::startRender() {
 
       json metadata;
       metadata["timestamp"] = getCurrentTime();
+      {
+        std::lock_guard<std::mutex> lk(_mx_asr);
+        if (_asr.size() > 0) {
+          metadata["asr"] = _asr;
+          _asr = "";
+        }
+      }
       if (wav == "TTS_DONE") {
         metadata["listen"] = 1;
       } else if (wav != "")
@@ -166,6 +173,14 @@ void EdgeRender::startRender() {
 }
 
 int EdgeRender::checkModel(const std::string &role) {
+  fs::path roleDir = CONFIG::resourceDir + "/roles/" + role;
+  if (fs::exists(roleDir) == false) {
+    PLOGD << role << " resource is missing";
+    return -1;
+  }
+  return 0;
+}
+#if 0
   static std::mutex mx;
   std::lock_guard<std::mutex> lock(mx);
 
@@ -201,14 +216,11 @@ int EdgeRender::checkModel(const std::string &role) {
       PLOGI << "failed to run:" << cmd;
       return -2;
     }
-  }
-
-  return 0;
-}
+#endif
 
 int EdgeRender::load(const std::string &role) {
-  std::string baseDir = "gj_dh_res";
-  std::string modelDir = "roles/" + role;
+  std::string baseDir = CONFIG::resourceDir + "/gj_dh_res";
+  std::string modelDir = CONFIG::resourceDir + "/roles/" + role;
   if (checkModel(role) != 0) {
     return -1;
   };

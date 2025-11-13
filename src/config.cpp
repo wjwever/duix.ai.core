@@ -1,22 +1,22 @@
 #include "config.h"
 #include "clog.h"
 
-config *config::get() {
-  static config conf;
-  return &conf;
-}
-
-bool config::valid() {
-  auto check = [](const std::string &key) {
+namespace CONFIG {
+bool valid() {
+  bool ret = true;
+  auto check = [&ret](const std::string &desc, const std::string &key) {
     if (key.size() == 0) {
-      PLOGE << key << " empty, check the config file";
+      ret = false;
+      PLOGE << desc << " empty, check config.h";
     }
   };
-  check(groupId);
-  check(apiKey);
-  check(lmUrl);
-  check(lmApiKey);
-  check(lmModel);
-  check(lmPrompt);
-  return groupId.size() > 0 and apiKey.size() > 0;
+  check("resourceDir", resourceDir);
+  check("groupId", groupId);
+  check("apiKey", apiKey);
+  check("lmUrl", lmUrl);
+  check("lmApiKey", lmApiKey);
+  check("lmModel", lmModel);
+  check("lmPrompt", lmPrompt);
+  return ret;
 }
+} // namespace CONFIG

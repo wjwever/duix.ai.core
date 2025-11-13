@@ -12,20 +12,19 @@ void LmClient::request(const std::string &query) {
     return;
   }
   chat = true;
-  auto *config = config::get();
-  json messages = {{{"role", "system"}, {"content", config->lmPrompt}}};
+  json messages = {{{"role", "system"}, {"content", CONFIG::lmPrompt}}};
   for (int i = 0; i < _history.size(); ++i) {
     std::string role = i % 2 == 0 ? "user" : "system";
     messages.push_back({{"role", role}, {"content", _history[i]}});
   }
   messages.push_back({{"role", "user"}, {"content", query}});
   nlohmann::json root = {
-      {"model", config->lmModel}, {"messages", messages}, {"stream", true}};
+      {"model", CONFIG::lmModel}, {"messages", messages}, {"stream", true}};
 
   Fetch::RequestOptions options;
   options.method = "POST";
   options.headers = {{"Content-Type", "application/json"},
-                     {"Authorization", "Bearer " + config->lmApiKey},
+                     {"Authorization", "Bearer " + CONFIG::lmApiKey},
                      {"Accept", "text/event-stream"}};
   options.body = root.dump();
 
@@ -68,25 +67,25 @@ void LmClient::request(const std::string &query) {
           onSubText(arr);
         } catch (const std::exception &e) {
           PLOGE << "JSON parse error: " << data << " " << e.what();
-          done = true; 
+          done = true;
           break;
         }
       }
     }
 
     if (done) {
-        /*
-        auto json = nlohmann::json::parse(buffer);
-        response += json["choices"][0]["content"];
-        tmpResp += json["choices"][0]["content"];
-        */
-        auto arr = splitMixedSentences(tmpResp, true);
-        arr.push_back("");
-        onSubText(arr);
+      /*
+      auto json = nlohmann::json::parse(buffer);
+      response += json["choices"][0]["content"];
+      tmpResp += json["choices"][0]["content"];
+      */
+      auto arr = splitMixedSentences(tmpResp, true);
+      arr.push_back("");
+      onSubText(arr);
     }
   };
 
-  Fetch::request(config->lmUrl + "/chat/completions", options);
+  Fetch::request(CONFIG::lmUrl + "/chat/completions", options);
   _history.push_back(query);
   _history.push_back(response);
   chat = false;

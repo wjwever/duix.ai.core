@@ -161,7 +161,6 @@ std::string tts(const std::string &text, const std::string &voice) {
     return wav;
   }
 
-  auto *config = config::get();
   CURL *curl;
   CURLcode res;
   struct MemoryStruct chunk;
@@ -178,13 +177,13 @@ std::string tts(const std::string &text, const std::string &voice) {
 
   if (curl) {
     std::string url =
-        "https://api.minimax.chat/v1/t2a_v2?GroupId=" + config->groupId;
+        "https://api.minimax.chat/v1/t2a_v2?GroupId=" + CONFIG::groupId;
     // 设置请求URL
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 
     // 设置HTTP头
     headers = curl_slist_append(headers, "Content-Type: application/json");
-    std::string apiKey = "Authorization: Bearer " + config->apiKey;
+    std::string apiKey = "Authorization: Bearer " + CONFIG::apiKey;
     headers = curl_slist_append(headers, apiKey.c_str());
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
